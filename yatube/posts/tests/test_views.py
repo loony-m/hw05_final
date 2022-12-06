@@ -65,6 +65,10 @@ class PostsViewsTest(TestCase):
         super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
     def test_templates(self):
         cache.clear()
 
