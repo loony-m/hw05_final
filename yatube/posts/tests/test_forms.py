@@ -89,7 +89,9 @@ class FormTest(TestCase):
 
     def test_add_comment_guest_client(self):
 
-        response = FormTest.authorized_client_nohave_post.get(f'/posts/{FormTest.post.id}/comment/')
+        response = FormTest.authorized_client_nohave_post.get(
+            f'/posts/{FormTest.post.id}/comment/'
+        )
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND.value)
 
