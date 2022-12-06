@@ -186,7 +186,7 @@ class PostsViewsTest(TestCase):
             with self.subTest():
                 response = PostsViewsTest.authorized_user.get(page)
                 post = response.context.get('page_obj')[0]
-                
+
                 self.assertEqual(
                     post.text,
                     PostsViewsTest.post.text
