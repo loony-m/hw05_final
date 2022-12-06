@@ -185,7 +185,7 @@ class PostsViewsTest(TestCase):
         for page in pages:
             with self.subTest():
                 response = PostsViewsTest.authorized_user.get(page)
-                post = response.context.get('page_obj')[0]
+                post = response.context.get('page_obj').object_list[0]
 
                 self.assertEqual(
                     post.text,
