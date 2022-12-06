@@ -317,7 +317,7 @@ class PostFollowerTest(TestCase):
 
         follow_count = Follow.objects.all().count()
 
-        self.assertEqual(follow_count, 2)
+        self.assertEqual(follow_count, 1)
 
     def test_user_can_unfollow(self):
         Follow.objects.create(
