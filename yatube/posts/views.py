@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, Comment, Follow
+from .models import Group, Post, Follow
 
 POST_COUNT = 10
 
@@ -53,14 +53,15 @@ def group_posts(request, slug):
 
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=user.id).all()
+    posts = Post.objects.filter(author=user.id)
     page_obj = get_pagination(request, posts, POST_COUNT)
     following = False
 
     if request.user.is_authenticated:
-        follower = Follow.objects.filter(user=request.user, author=user)
-        if follower.count() > 0:
-            following = True
+        following = Follow.objects.filter(
+            user=request.user,
+            author=user
+        ).exists()
 
     context = {
         'page_obj': page_obj['elements'],
@@ -75,10 +76,10 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    user = User.objects.get(username=post.author)
-    post_count = Post.objects.filter(author=user.id).count()
+    user = get_object_or_404(User, username=post.author)
+    post_count = user.posts.count()
     form = CommentForm()
-    comments = Comment.objects.filter(post=post)
+    comments = post.comments.all()
 
     context = {
         'username': post.author,
@@ -101,8 +102,8 @@ def post_create(request):
             form_post.author = author
             form_post.save()
             return redirect(f'/profile/{request.user.username}/')
-    else:
-        form = PostForm()
+
+    form = PostForm()
 
     context = {
         'form': form
@@ -138,7 +139,7 @@ def post_edit(request, post_id):
 @login_required
 def add_comment(request, post_id):
     form = CommentForm(request.POST or None)
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.author = request.user
@@ -150,13 +151,8 @@ def add_comment(request, post_id):
 @login_required
 def follow_index(request):
     title = 'Новости авторов, на которых я подписан'
-    followings = Follow.objects.filter(user=request.user)
-    authors = []
 
-    for following in followings:
-        authors.append(following.author)
-
-    posts = Post.objects.filter(author__in=authors)
+    posts = Post.objects.filter(author__following__user=request.user)
     page_obj = get_pagination(request, posts, POST_COUNT)
 
     context = {
@@ -169,19 +165,19 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    following = User.objects.get(username=username)
+    following = get_object_or_404(User, username=username)
     data = {'user': request.user, 'author': following}
 
-    if not request.user.username == username:
-        if not Follow.objects.filter(**data).exists():
-            Follow.objects.create(**data)
+    if not (request.user.username == username
+            or Follow.objects.filter(**data).exists()):
+        Follow.objects.create(**data)
 
     return redirect('posts:profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    author = User.objects.get(username=username)
+    author = get_object_or_404(User, username=username)
     subscribe = Follow.objects.filter(user=request.user, author=author)
     subscribe.delete()
 
