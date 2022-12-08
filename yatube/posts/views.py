@@ -53,7 +53,7 @@ def group_posts(request, slug):
 
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=user.id)
+    posts = user.posts.all()
     page_obj = get_pagination(request, posts, POST_COUNT)
     following = False
 

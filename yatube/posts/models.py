@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -91,10 +92,12 @@ class Follow(models.Model):
     )
 
     class Meta:
-        models.UniqueConstraint(
-            name='unique_follow',
-            fields=['user', 'author'],
-        )
+        constraints = [
+            UniqueConstraint(
+                name='unique_follow',
+                fields=['user', 'author'],
+            )
+        ]
 
     def __str__(self) -> str:
         return (f'Пользователь {self.user.username} '
